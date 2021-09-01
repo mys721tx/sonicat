@@ -29,8 +29,7 @@ fn main() {
                 .short("d")
                 .long("depth")
                 .value_name("DEPTH")
-                .help("Average read depth")
-                .default_value("50")
+                .help("Average read depth, default to 50")
                 .takes_value(true),
         )
         .arg(
@@ -38,8 +37,7 @@ fn main() {
                 .short("l")
                 .long("length")
                 .value_name("LENGTH")
-                .help("Average read length")
-                .default_value("150")
+                .help("Average read length, default to 150")
                 .takes_value(true),
         )
         .get_matches();
@@ -56,8 +54,12 @@ fn main() {
     };
     let mut writer = fasta::Writer::new(fout);
 
-    let depth: f64 = matches.value_of("depth").unwrap().parse().unwrap();
-    let length: usize = matches.value_of("length").unwrap().parse().unwrap();
+    let depth = matches
+        .value_of("depth")
+        .map_or(50.0, |x| x.parse().unwrap());
+    let length = matches
+        .value_of("length")
+        .map_or(150, |x| x.parse().unwrap());
 
     let poi = Poisson::new(depth).unwrap();
 
