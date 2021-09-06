@@ -1,11 +1,9 @@
 # Sonicat
 
-By [Yishen Miao](https://github.com/mys721tx)
-
 ## Description
 
-**Sonicat** is an *in silico* sonicator.
-
+**Sonicat** is a suite of tools for *in silico* sonicator and sequence
+manipulation.
 
 ## Author
 
