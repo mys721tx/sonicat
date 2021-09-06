@@ -8,6 +8,11 @@ use rand::{
 use std::fs::File;
 use std::io;
 
+// from Brodin et al. 2013, doi:10.1371/journal.pone.0070388
+const DEFAULT_SUBSTITUTION: f64 = 0.000057;
+const DEFAULT_INSERTION: f64 = 0.000069;
+const DEFAULT_DELETION: f64 = 0.0016;
+
 struct Mutator {
     weights: [f64; 4],
     rng: ThreadRng,
@@ -105,7 +110,13 @@ fn main() {
                 .short("s")
                 .long("substitution")
                 .value_name("SUBSTITUTION")
-                .help("Probability of substitution per nucleotide, default to 0.000057")
+                .help(
+                    format!(
+                        "Probability of substitution per nucleotide, default to {}",
+                        DEFAULT_SUBSTITUTION
+                    )
+                    .as_str(),
+                )
                 .takes_value(true),
         )
         .arg(
@@ -113,7 +124,13 @@ fn main() {
                 .short("n")
                 .long("insertion")
                 .value_name("INSERTION")
-                .help("Probability of insertion per nucleotide, default to 0.000069")
+                .help(
+                    format!(
+                        "Probability of insertion per nucleotide, default to {}",
+                        DEFAULT_INSERTION
+                    )
+                    .as_str(),
+                )
                 .takes_value(true),
         )
         .arg(
@@ -121,7 +138,13 @@ fn main() {
                 .short("d")
                 .long("deletion")
                 .value_name("DELETION")
-                .help("Probability of deletion per nucleotide, default to 0.0016")
+                .help(
+                    format!(
+                        "Probability of deletion per nucleotide, default to {}",
+                        DEFAULT_DELETION
+                    )
+                    .as_str(),
+                )
                 .takes_value(true),
         )
         .get_matches();
@@ -138,16 +161,15 @@ fn main() {
     };
     let mut writer = fasta::Writer::new(fout);
 
-    // from Brodin et al. 2013, doi:10.1371/journal.pone.0070388
     let substitution = matches
         .value_of("substitution")
-        .map_or(0.000057, |x| x.parse().unwrap());
+        .map_or(DEFAULT_SUBSTITUTION, |x| x.parse().unwrap());
     let insertion = matches
         .value_of("insertion")
-        .map_or(0.000069, |x| x.parse().unwrap());
+        .map_or(DEFAULT_INSERTION, |x| x.parse().unwrap());
     let deletion = matches
         .value_of("deletion")
-        .map_or(0.0016, |x| x.parse().unwrap());
+        .map_or(DEFAULT_DELETION, |x| x.parse().unwrap());
 
     let mut mutator = Mutator::new(substitution, insertion, deletion);
 

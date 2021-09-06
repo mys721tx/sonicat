@@ -5,6 +5,9 @@ use rand_distr::Poisson;
 use std::fs::File;
 use std::io;
 
+const DEFAULT_DEPTH: f64 = 50.0;
+const DEFAULT_LENGTH: usize = 150;
+
 fn main() {
     let matches = App::new("Sonicat")
         .about("in silico sonication of FASTA sequences.")
@@ -29,7 +32,7 @@ fn main() {
                 .short("d")
                 .long("depth")
                 .value_name("DEPTH")
-                .help("Average read depth, default to 50")
+                .help(format!("Average read depth, default to {}", DEFAULT_DEPTH).as_str())
                 .takes_value(true),
         )
         .arg(
@@ -37,7 +40,7 @@ fn main() {
                 .short("l")
                 .long("length")
                 .value_name("LENGTH")
-                .help("Average read length, default to 150")
+                .help(format!("Average read length, default to {}", DEFAULT_LENGTH).as_str())
                 .takes_value(true),
         )
         .get_matches();
@@ -56,10 +59,10 @@ fn main() {
 
     let depth = matches
         .value_of("depth")
-        .map_or(50.0, |x| x.parse().unwrap());
+        .map_or(DEFAULT_DEPTH, |x| x.parse().unwrap());
     let length = matches
         .value_of("length")
-        .map_or(150, |x| x.parse().unwrap());
+        .map_or(DEFAULT_LENGTH, |x| x.parse().unwrap());
 
     let poi = Poisson::new(depth).unwrap();
 
