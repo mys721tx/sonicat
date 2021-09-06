@@ -23,8 +23,8 @@ impl Mutator {
     fn mutate(&mut self, b: u8) -> Option<u8> {
         let dist = WeightedIndex::new(self.weights).unwrap();
         let fate = self.rng.sample(dist);
-        match fate {
-            0 => Some({
+        match (fate, b) {
+            (0, _) => Some({
                 let dist = Uniform::from(0..3);
                 let nuc = self.rng.sample(dist);
                 match nuc {
@@ -35,49 +35,46 @@ impl Mutator {
                     _ => b,
                 }
             }),
-            1 => None,
-            2 => Some(match b {
-                b'A' => {
-                    let dist = Uniform::from(0..2);
-                    let nuc = self.rng.sample(dist);
-                    match nuc {
-                        0 => b'C',
-                        1 => b'G',
-                        2 => b'T',
-                        _ => b,
-                    }
+            (1, _) => None,
+            (2, b'A') => Some({
+                let dist = Uniform::from(0..2);
+                let nuc = self.rng.sample(dist);
+                match nuc {
+                    0 => b'C',
+                    1 => b'G',
+                    2 => b'T',
+                    _ => b,
                 }
-                b'C' => {
-                    let dist = Uniform::from(0..2);
-                    let nuc = self.rng.sample(dist);
-                    match nuc {
-                        0 => b'A',
-                        1 => b'G',
-                        2 => b'T',
-                        _ => b,
-                    }
+            }),
+            (2, b'C') => Some({
+                let dist = Uniform::from(0..2);
+                let nuc = self.rng.sample(dist);
+                match nuc {
+                    0 => b'A',
+                    1 => b'G',
+                    2 => b'T',
+                    _ => b,
                 }
-                b'G' => {
-                    let dist = Uniform::from(0..2);
-                    let nuc = self.rng.sample(dist);
-                    match nuc {
-                        0 => b'A',
-                        1 => b'C',
-                        2 => b'T',
-                        _ => b,
-                    }
+            }),
+            (2, b'G') => Some({
+                let dist = Uniform::from(0..2);
+                let nuc = self.rng.sample(dist);
+                match nuc {
+                    0 => b'A',
+                    1 => b'C',
+                    2 => b'T',
+                    _ => b,
                 }
-                b'T' => {
-                    let dist = Uniform::from(0..2);
-                    let nuc = self.rng.sample(dist);
-                    match nuc {
-                        0 => b'A',
-                        1 => b'C',
-                        2 => b'G',
-                        _ => b,
-                    }
+            }),
+            (2, b'T') => Some({
+                let dist = Uniform::from(0..2);
+                let nuc = self.rng.sample(dist);
+                match nuc {
+                    0 => b'A',
+                    1 => b'C',
+                    2 => b'G',
+                    _ => b,
                 }
-                _ => b,
             }),
             _ => Some(b),
         }
