@@ -1,5 +1,5 @@
 use bio::io::fasta;
-use clap::{App, Arg};
+use clap::{Arg, Command};
 use rand::{
     distributions::{Uniform, WeightedIndex},
     rngs::ThreadRng,
@@ -87,27 +87,27 @@ impl Mutator {
 }
 
 fn main() {
-    let matches = App::new("Muta")
+    let matches = Command::new("matchesMuta")
         .about("in silico mutation of FASTA sequences.")
         .arg(
-            Arg::with_name("in")
-                .short("i")
+            Arg::new("in")
+                .short('i')
                 .long("in")
                 .value_name("INPUT")
                 .help("Input FASTA file, default to stdin")
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("out")
-                .short("o")
+            Arg::new("out")
+                .short('o')
                 .long("out")
                 .value_name("OUTPUT")
                 .help("Output FASTA file, default to stdout")
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("substitution")
-                .short("s")
+            Arg::new("substitution")
+                .short('s')
                 .long("substitution")
                 .value_name("SUBSTITUTION")
                 .help(
@@ -120,8 +120,8 @@ fn main() {
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("insertion")
-                .short("n")
+            Arg::new("insertion")
+                .short('n')
                 .long("insertion")
                 .value_name("INSERTION")
                 .help(
@@ -134,8 +134,8 @@ fn main() {
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("deletion")
-                .short("d")
+            Arg::new("deletion")
+                .short('d')
                 .long("deletion")
                 .value_name("DELETION")
                 .help(

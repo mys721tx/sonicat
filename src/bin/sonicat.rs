@@ -1,5 +1,5 @@
 use bio::io::fasta;
-use clap::{App, Arg};
+use clap::{Arg, Command};
 use rand::{thread_rng, Rng};
 use rand_distr::Poisson;
 use std::fs::File;
@@ -9,35 +9,35 @@ const DEFAULT_DEPTH: f64 = 50.0;
 const DEFAULT_LENGTH: usize = 150;
 
 fn main() {
-    let matches = App::new("Sonicat")
+    let matches = Command::new("Sonicat")
         .about("in silico sonication of FASTA sequences.")
         .arg(
-            Arg::with_name("in")
-                .short("i")
+            Arg::new("in")
+                .short('i')
                 .long("in")
                 .value_name("INPUT")
                 .help("Input FASTA file, default to stdin")
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("out")
-                .short("o")
+            Arg::new("out")
+                .short('o')
                 .long("out")
                 .value_name("OUTPUT")
                 .help("Output FASTA file, default to stdout")
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("depth")
-                .short("d")
+            Arg::new("depth")
+                .short('d')
                 .long("depth")
                 .value_name("DEPTH")
                 .help(format!("Average read depth, default to {}", DEFAULT_DEPTH).as_str())
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("length")
-                .short("l")
+            Arg::new("length")
+                .short('l')
                 .long("length")
                 .value_name("LENGTH")
                 .help(format!("Average read length, default to {}", DEFAULT_LENGTH).as_str())
