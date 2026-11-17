@@ -1,5 +1,5 @@
 use bio::io::fasta;
-use clap::{Arg, Command};
+use clap::{value_parser, Arg, Command};
 use rand::{
     distributions::{Uniform, WeightedIndex},
     rngs::ThreadRng,
@@ -94,82 +94,74 @@ fn main() {
                 .short('i')
                 .long("in")
                 .value_name("INPUT")
-                .help("Input FASTA file, default to stdin")
-                .takes_value(true),
+                .help("Input FASTA file, default to stdin"),
         )
         .arg(
             Arg::new("out")
                 .short('o')
                 .long("out")
                 .value_name("OUTPUT")
-                .help("Output FASTA file, default to stdout")
-                .takes_value(true),
+                .help("Output FASTA file, default to stdout"),
         )
         .arg(
             Arg::new("substitution")
                 .short('s')
                 .long("substitution")
                 .value_name("SUBSTITUTION")
-                .help(
-                    format!(
-                        "Probability of substitution per nucleotide, default to {}",
-                        DEFAULT_SUBSTITUTION
-                    )
-                    .as_str(),
-                )
-                .takes_value(true),
+                .help(format!(
+                    "Probability of substitution per nucleotide, default to {}",
+                    DEFAULT_SUBSTITUTION
+                ))
+                .value_parser(value_parser!(f64)),
         )
         .arg(
             Arg::new("insertion")
                 .short('n')
                 .long("insertion")
                 .value_name("INSERTION")
-                .help(
-                    format!(
-                        "Probability of insertion per nucleotide, default to {}",
-                        DEFAULT_INSERTION
-                    )
-                    .as_str(),
-                )
-                .takes_value(true),
+                .help(format!(
+                    "Probability of insertion per nucleotide, default to {}",
+                    DEFAULT_INSERTION
+                ))
+                .value_parser(value_parser!(f64)),
         )
         .arg(
             Arg::new("deletion")
                 .short('d')
                 .long("deletion")
                 .value_name("DELETION")
-                .help(
-                    format!(
-                        "Probability of deletion per nucleotide, default to {}",
-                        DEFAULT_DELETION
-                    )
-                    .as_str(),
-                )
-                .takes_value(true),
+                .help(format!(
+                    "Probability of deletion per nucleotide, default to {}",
+                    DEFAULT_DELETION
+                ))
+                .value_parser(value_parser!(f64)),
         )
         .get_matches();
 
-    let fin: Box<dyn io::Read> = match matches.value_of("in") {
+    let fin: Box<dyn io::Read> = match matches.get_one::<String>("in") {
         Some(f) => Box::new(File::open(f).unwrap()),
         None => Box::new(io::stdin()),
     };
     let reader = fasta::Reader::new(fin);
 
-    let fout: Box<dyn io::Write> = match matches.value_of("out") {
+    let fout: Box<dyn io::Write> = match matches.get_one::<String>("out") {
         Some(f) => Box::new(File::create(f).unwrap()),
         None => Box::new(io::stdout()),
     };
     let mut writer = fasta::Writer::new(fout);
 
     let substitution = matches
-        .value_of("substitution")
-        .map_or(DEFAULT_SUBSTITUTION, |x| x.parse().unwrap());
+        .get_one::<f64>("substitution")
+        .copied()
+        .unwrap_or(DEFAULT_SUBSTITUTION);
     let insertion = matches
-        .value_of("insertion")
-        .map_or(DEFAULT_INSERTION, |x| x.parse().unwrap());
+        .get_one::<f64>("insertion")
+        .copied()
+        .unwrap_or(DEFAULT_INSERTION);
     let deletion = matches
-        .value_of("deletion")
-        .map_or(DEFAULT_DELETION, |x| x.parse().unwrap());
+        .get_one::<f64>("deletion")
+        .copied()
+        .unwrap_or(DEFAULT_DELETION);
 
     let mut mutator = Mutator::new(substitution, insertion, deletion);
 
