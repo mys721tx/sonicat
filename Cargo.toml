@@ -7,6 +7,6 @@ edition = "2021"
 
 [dependencies]
 bio = "4.2.2"
-rand = "0.8.5"
+rand = "0.10.3"
 rand_distr = "0.4.3"
 clap = "4.6.8"
