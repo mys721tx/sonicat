@@ -10,3 +10,10 @@ bio = "4.2.2"
 rand = "0.10.3"
 rand_distr = "0.6.0"
 clap = "4.6.8"
+
+[dev-dependencies]
+criterion = "0.8.2"
+
+[[bench]]
+name = "sonicat"
+harness = false

@@ -1,93 +1,18 @@
 use bio::io::fasta;
 use clap::{Arg, Command, value_parser};
-use rand::{
-    RngExt,
-    distr::{Uniform, weighted::WeightedIndex},
-    rngs::ThreadRng,
-};
+use rand::{SeedableRng, rngs::StdRng};
+use sonicat::Mutator;
 use std::fs::File;
-use std::io;
+use std::io::{self, BufWriter};
+use std::process;
 
 // from Brodin et al. 2013, doi:10.1371/journal.pone.0070388
 const DEFAULT_SUBSTITUTION: f64 = 0.000057;
 const DEFAULT_INSERTION: f64 = 0.000069;
 const DEFAULT_DELETION: f64 = 0.0016;
 
-struct Mutator {
-    weights: [f64; 4],
-    rng: ThreadRng,
-}
-
-impl Mutator {
-    fn new(s: f64, i: f64, d: f64) -> Mutator {
-        Mutator {
-            weights: [s, i, d, 1.0 - s - i - d],
-            rng: rand::rng(),
-        }
-    }
-    fn mutate(&mut self, b: u8) -> Option<u8> {
-        let dist = WeightedIndex::new(self.weights).unwrap();
-        let fate = self.rng.sample(dist);
-        match (fate, b) {
-            (0, _) => Some({
-                let dist = Uniform::new(0, 3).unwrap();
-                let nuc = self.rng.sample(dist);
-                match nuc {
-                    0 => b'A',
-                    1 => b'C',
-                    2 => b'G',
-                    3 => b'T',
-                    _ => b,
-                }
-            }),
-            (1, _) => None,
-            (2, b'A') => Some({
-                let dist = Uniform::new(0, 2).unwrap();
-                let nuc = self.rng.sample(dist);
-                match nuc {
-                    0 => b'C',
-                    1 => b'G',
-                    2 => b'T',
-                    _ => b,
-                }
-            }),
-            (2, b'C') => Some({
-                let dist = Uniform::new(0, 2).unwrap();
-                let nuc = self.rng.sample(dist);
-                match nuc {
-                    0 => b'A',
-                    1 => b'G',
-                    2 => b'T',
-                    _ => b,
-                }
-            }),
-            (2, b'G') => Some({
-                let dist = Uniform::new(0, 2).unwrap();
-                let nuc = self.rng.sample(dist);
-                match nuc {
-                    0 => b'A',
-                    1 => b'C',
-                    2 => b'T',
-                    _ => b,
-                }
-            }),
-            (2, b'T') => Some({
-                let dist = Uniform::new(0, 2).unwrap();
-                let nuc = self.rng.sample(dist);
-                match nuc {
-                    0 => b'A',
-                    1 => b'C',
-                    2 => b'G',
-                    _ => b,
-                }
-            }),
-            _ => Some(b),
-        }
-    }
-}
-
 fn main() {
-    let matches = Command::new("matchesMuta")
+    let matches = Command::new("Muta")
         .about("in silico mutation of FASTA sequences.")
         .arg(
             Arg::new("in")
@@ -136,19 +61,14 @@ fn main() {
                 ))
                 .value_parser(value_parser!(f64)),
         )
+        .arg(
+            Arg::new("seed")
+                .long("seed")
+                .value_name("SEED")
+                .help("Seed for the random number generator, default to a random seed")
+                .value_parser(value_parser!(u64)),
+        )
         .get_matches();
-
-    let fin: Box<dyn io::Read> = match matches.get_one::<String>("in") {
-        Some(f) => Box::new(File::open(f).unwrap()),
-        None => Box::new(io::stdin()),
-    };
-    let reader = fasta::Reader::new(fin);
-
-    let fout: Box<dyn io::Write> = match matches.get_one::<String>("out") {
-        Some(f) => Box::new(File::create(f).unwrap()),
-        None => Box::new(io::stdout()),
-    };
-    let mut writer = fasta::Writer::new(fout);
 
     let substitution = matches
         .get_one::<f64>("substitution")
@@ -163,18 +83,36 @@ fn main() {
         .copied()
         .unwrap_or(DEFAULT_DELETION);
 
-    let mut mutator = Mutator::new(substitution, insertion, deletion);
+    let mutator = Mutator::new(substitution, insertion, deletion).unwrap_or_else(|e| {
+        eprintln!("error: {e}");
+        process::exit(2);
+    });
+
+    let mut rng = match matches.get_one::<u64>("seed") {
+        Some(&seed) => StdRng::seed_from_u64(seed),
+        None => StdRng::from_rng(&mut rand::rng()),
+    };
+
+    let fin: Box<dyn io::Read> = match matches.get_one::<String>("in") {
+        Some(f) => Box::new(File::open(f).unwrap()),
+        None => Box::new(io::stdin()),
+    };
+    let reader = fasta::Reader::new(fin);
+
+    let fout: Box<dyn io::Write> = match matches.get_one::<String>("out") {
+        Some(f) => Box::new(BufWriter::new(File::create(f).unwrap())),
+        None => Box::new(BufWriter::new(io::stdout())),
+    };
+    let mut writer = fasta::Writer::new(fout);
+
+    let mut buf = Vec::new();
 
     for record in reader.records() {
         let record = record.unwrap();
 
-        let mut buf = Vec::with_capacity(record.seq().len() * 2);
-
-        for r in record.seq().iter() {
-            if let Some(x) = mutator.mutate(*r) {
-                buf.push(x);
-            }
-        }
+        buf.clear();
+        mutator.mutate_into(record.seq(), &mut rng, &mut buf);
         writer.write(record.id(), record.desc(), &buf).unwrap();
     }
+    writer.flush().unwrap();
 }
