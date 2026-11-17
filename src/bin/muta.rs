@@ -1,9 +1,10 @@
 use bio::io::fasta;
-use clap::{value_parser, Arg, Command};
+use clap::{Arg, Command, value_parser};
 use rand::{
+    Rng,
     distributions::{Uniform, WeightedIndex},
     rngs::ThreadRng,
-    thread_rng, Rng,
+    thread_rng,
 };
 use std::fs::File;
 use std::io;

@@ -1,6 +1,6 @@
 use bio::io::fasta;
-use clap::{value_parser, Arg, Command};
-use rand::{thread_rng, Rng};
+use clap::{Arg, Command, value_parser};
+use rand::{Rng, thread_rng};
 use rand_distr::Poisson;
 use std::fs::File;
 use std::io;
