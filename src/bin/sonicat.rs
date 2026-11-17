@@ -1,6 +1,6 @@
 use bio::io::fasta;
 use clap::{Arg, Command, value_parser};
-use rand::{Rng, thread_rng};
+use rand::RngExt;
 use rand_distr::Poisson;
 use std::fs::File;
 use std::io;
@@ -76,7 +76,7 @@ fn main() {
         let record = record.seq().windows(length);
 
         for r in record {
-            let v = thread_rng().sample(poi) as u64;
+            let v = rand::rng().sample(poi) as u64;
             for _ in 0..v {
                 count += 1;
 

@@ -1,10 +1,9 @@
 use bio::io::fasta;
 use clap::{Arg, Command, value_parser};
 use rand::{
-    Rng,
-    distributions::{Uniform, WeightedIndex},
+    RngExt,
+    distr::{Uniform, weighted::WeightedIndex},
     rngs::ThreadRng,
-    thread_rng,
 };
 use std::fs::File;
 use std::io;
@@ -23,7 +22,7 @@ impl Mutator {
     fn new(s: f64, i: f64, d: f64) -> Mutator {
         Mutator {
             weights: [s, i, d, 1.0 - s - i - d],
-            rng: thread_rng(),
+            rng: rand::rng(),
         }
     }
     fn mutate(&mut self, b: u8) -> Option<u8> {
@@ -31,7 +30,7 @@ impl Mutator {
         let fate = self.rng.sample(dist);
         match (fate, b) {
             (0, _) => Some({
-                let dist = Uniform::from(0..3);
+                let dist = Uniform::new(0, 3).unwrap();
                 let nuc = self.rng.sample(dist);
                 match nuc {
                     0 => b'A',
@@ -43,7 +42,7 @@ impl Mutator {
             }),
             (1, _) => None,
             (2, b'A') => Some({
-                let dist = Uniform::from(0..2);
+                let dist = Uniform::new(0, 2).unwrap();
                 let nuc = self.rng.sample(dist);
                 match nuc {
                     0 => b'C',
@@ -53,7 +52,7 @@ impl Mutator {
                 }
             }),
             (2, b'C') => Some({
-                let dist = Uniform::from(0..2);
+                let dist = Uniform::new(0, 2).unwrap();
                 let nuc = self.rng.sample(dist);
                 match nuc {
                     0 => b'A',
@@ -63,7 +62,7 @@ impl Mutator {
                 }
             }),
             (2, b'G') => Some({
-                let dist = Uniform::from(0..2);
+                let dist = Uniform::new(0, 2).unwrap();
                 let nuc = self.rng.sample(dist);
                 match nuc {
                     0 => b'A',
@@ -73,7 +72,7 @@ impl Mutator {
                 }
             }),
             (2, b'T') => Some({
-                let dist = Uniform::from(0..2);
+                let dist = Uniform::new(0, 2).unwrap();
                 let nuc = self.rng.sample(dist);
                 match nuc {
                     0 => b'A',
